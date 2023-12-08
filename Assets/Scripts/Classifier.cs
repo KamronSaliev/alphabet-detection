@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace AlphabetDetection
 {
-    public class DigitDetector : MonoBehaviour
+    public class Classifier : MonoBehaviour
     {
         [Header("Main")] [SerializeField] private Texture2D _inputTexture;
         [SerializeField] private ModelAsset _modelAsset;

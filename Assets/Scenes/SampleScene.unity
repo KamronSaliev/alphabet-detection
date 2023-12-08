@@ -730,7 +730,7 @@ GameObject:
   - component: {fileID: 1496162188}
   - component: {fileID: 1496162187}
   m_Layer: 0
-  m_Name: DigitDetector
+  m_Name: Classifier
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -749,7 +749,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _inputTexture: {fileID: 2800000, guid: 7caac9941b0b34e9ea075259487c2336, type: 3}
-  _modelAsset: {fileID: 5022602860645237092, guid: 54cb0f98889e440fca384b6bb34196d5, type: 3}
+  _modelAsset: {fileID: 5022602860645237092, guid: 6ca1b83bbb53b46d5b4b8117306abf92, type: 3}
+  _results: []
   _image: {fileID: 142257350}
   _text: {fileID: 925505378}
 --- !u!4 &1496162188

@@ -8,11 +8,10 @@ namespace AlphabetDetection
 {
     public class Classifier : MonoBehaviour
     {
-        [Header("Main")] [SerializeField] private Drawer _drawer;
+        [SerializeField] private Drawer _drawer;
         [SerializeField] private ModelAsset _modelAsset;
+        [SerializeField] private TMP_Text _text;
         [SerializeField] private string[] _results;
-
-        [Header("View")] [SerializeField] private TMP_Text _text;
 
         private readonly Dictionary<int, int> _map = new()
         {

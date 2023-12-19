@@ -3,20 +3,16 @@ using System.Linq;
 using TMPro;
 using Unity.Sentis;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace AlphabetDetection
 {
     public class Classifier : MonoBehaviour
     {
-        [Header("Main")] [SerializeField] private Texture2D _inputTexture;
+        [Header("Main")] [SerializeField] private Drawer _drawer;
         [SerializeField] private ModelAsset _modelAsset;
         [SerializeField] private string[] _results;
 
-        [Header("View")] [SerializeField] private RawImage _image;
-        [SerializeField] private TMP_Text _text;
-
-        private const string SoftmaxOutputName = "dense_2";
+        [Header("View")] [SerializeField] private TMP_Text _text;
 
         private readonly Dictionary<int, int> _map = new()
         {
@@ -28,54 +24,62 @@ namespace AlphabetDetection
             { 44, 113 }, { 45, 114 }, { 46, 116 }
         };
 
+        private const string SoftmaxOutputName = "dense_2";
+
         private Model _runtimeModel;
         private IWorker _worker;
+        private Tensor _inputTensor;
+        private Texture2D _inputTexture;
+        private TensorFloat _outputTensor;
 
-        private void Start()
+        public void Classify()
         {
-            var results = GetResults();
+            var results = GetResults(_drawer.DrawingTexture);
+            var max = results.Max();
+            var index = results.ToList().IndexOf(max);
+
+            Debug.Log($"Result: {(char)_map[index]}, {max}");
 
             View(results);
         }
 
-        private void OnDisable()
+        private void OnDestroy()
         {
-            _worker.Dispose();
+            _inputTensor?.Dispose();
+            _worker?.Dispose();
+            _outputTensor?.Dispose();
         }
 
         private void View(float[] results)
         {
-            Debug.LogWarning($"{string.Join(" ", results)}");
-
             _results = results.Select((value, index) => $"{(char)_map[index]}:\t{value:F2}").ToArray();
-
-            _image.texture = _inputTexture;
             _text.text = string.Join("\n", _results);
         }
 
-        private float[] GetResults()
+        private float[] GetResults(Texture2D texture)
         {
+            _inputTensor?.Dispose();
+            _worker?.Dispose();
+            _outputTensor?.Dispose();
+
             var softmaxOutputName = SoftmaxOutputName;
             _runtimeModel = ModelLoader.Load(_modelAsset);
-
-            // _runtimeModel.AddLayer(new Softmax(softmaxOutputName, _runtimeModel.outputs[0]));
-
             _runtimeModel.outputs[0] = softmaxOutputName;
 
-            using Tensor inputTensor = TextureConverter.ToTensor(_inputTexture, 28, 28, 1);
+            _inputTensor = TextureConverter.ToTensor(texture, 28, 28, 1);
 
             _worker = WorkerFactory.CreateWorker(BackendType.GPUCompute, _runtimeModel);
-            _worker.Execute(inputTensor);
+            _worker.Execute(_inputTensor);
 
-            using var outputTensor = _worker.PeekOutput() as TensorFloat;
+            _outputTensor = _worker.PeekOutput() as TensorFloat;
 
-            if (outputTensor == null)
+            if (_outputTensor == null)
             {
                 return new float[] { };
             }
 
-            outputTensor.MakeReadable();
-            return outputTensor.ToReadOnlyArray();
+            _outputTensor.MakeReadable();
+            return _outputTensor.ToReadOnlyArray();
         }
     }
 }
